@@ -1,7 +1,6 @@
 package com.ereyes.jctodoapp.addtasks.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +16,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CardElevation
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -28,17 +26,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.ereyes.jctodoapp.addtasks.ui.model.TaskModel
 
 /****
@@ -52,21 +53,38 @@ import com.ereyes.jctodoapp.addtasks.ui.model.TaskModel
 fun TasksScreen(tasksViewModel: TasksViewModel) {
 
     val showDialog: Boolean by tasksViewModel.showDialog.observeAsState(false)
-    Box(modifier = Modifier.fillMaxWidth()) {
-        TaskList(tasksViewModel)
-        FabOpenDialog(Modifier.align(Alignment.BottomEnd), tasksViewModel)
-        AddTasksDialog(
-            showDialog,
-            onDismiss = { tasksViewModel.onDialogClose() },
-            onTaskAdded = { tasksViewModel.onTaskCreate(it) }
-        )
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
 
+    val uiState by produceState<TaskUiState>(
+        initialValue = TaskUiState.Loading,
+        key1 = lifecycle,
+        key2 = tasksViewModel
+    ){
+        lifecycle.repeatOnLifecycle(state = Lifecycle.State.STARTED){
+            tasksViewModel.uiState.collect{value = it}
+        }
+    }
+
+    when(uiState){
+        is TaskUiState.Error -> {}
+        TaskUiState.Loading -> {}
+        is TaskUiState.Success -> {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                TaskList((uiState as TaskUiState.Success).tasks,tasksViewModel)
+                FabOpenDialog(Modifier.align(Alignment.BottomEnd), tasksViewModel)
+                AddTasksDialog(
+                    showDialog,
+                    onDismiss = { tasksViewModel.onDialogClose() },
+                    onTaskAdded = { tasksViewModel.onTaskCreate(it) }
+                )
+            }
+        }
     }
 }
 
 @Composable
-fun TaskList(tasksViewModel: TasksViewModel) {
-    val tasks: List<TaskModel> = tasksViewModel.tasks
+fun TaskList(tasks: List<TaskModel>, tasksViewModel: TasksViewModel) {
+    //val tasks: List<TaskModel> = tasksViewModel.tasks
     LazyColumn {
         items(tasks, key = { it.id }) { task ->
             ItemTask(task, tasksViewModel)
@@ -174,7 +192,7 @@ fun deleteTaskDialog(
     onTaskDelete: (TaskModel) -> Unit
 ) {
     if (show) {
-        Dialog(onDismissRequest = { onDismiss() }) {
+        Dialog(onDismissRequest = {  }) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
