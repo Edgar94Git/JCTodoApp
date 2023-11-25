@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -211,7 +212,8 @@ fun DeleteTaskDialog(
                         contentDescription = "",
                         Modifier
                             .align(Alignment.CenterVertically)
-                            .padding(end = 16.dp)
+                            .padding(end = 16.dp),
+                        tint = Color.Red
                     )
                     Text(
                         text = "¿Está seguro de eliminar la tarea?",
@@ -223,20 +225,24 @@ fun DeleteTaskDialog(
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Button(
+                        onClick = { onDismiss() },
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Gray,
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text(text = "Cancelar", fontSize = 18.sp)
+                    }
+                    Button(
                         onClick = { onTaskDelete(task) },
                         modifier = Modifier
                             .weight(1f)
                             .padding(end = 8.dp)
                     ) {
                         Text(text = "Aceptar", fontSize = 18.sp)
-                    }
-                    Button(
-                        onClick = { onDismiss() },
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 8.dp)
-                    ) {
-                        Text(text = "Cancelar", fontSize = 18.sp)
                     }
                 }
             }
