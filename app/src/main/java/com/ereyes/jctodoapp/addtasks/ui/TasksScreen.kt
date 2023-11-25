@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -59,18 +60,18 @@ fun TasksScreen(tasksViewModel: TasksViewModel) {
         initialValue = TaskUiState.Loading,
         key1 = lifecycle,
         key2 = tasksViewModel
-    ){
-        lifecycle.repeatOnLifecycle(state = Lifecycle.State.STARTED){
-            tasksViewModel.uiState.collect{value = it}
+    ) {
+        lifecycle.repeatOnLifecycle(state = Lifecycle.State.STARTED) {
+            tasksViewModel.uiState.collect { value = it }
         }
     }
 
-    when(uiState){
+    when (uiState) {
         is TaskUiState.Error -> {}
         TaskUiState.Loading -> {}
         is TaskUiState.Success -> {
             Box(modifier = Modifier.fillMaxWidth()) {
-                TaskList((uiState as TaskUiState.Success).tasks,tasksViewModel)
+                TaskList((uiState as TaskUiState.Success).tasks, tasksViewModel)
                 FabOpenDialog(Modifier.align(Alignment.BottomEnd), tasksViewModel)
                 AddTasksDialog(
                     showDialog,
@@ -95,11 +96,12 @@ fun TaskList(tasks: List<TaskModel>, tasksViewModel: TasksViewModel) {
 @Composable
 fun ItemTask(task: TaskModel, tasksViewModel: TasksViewModel) {
 
-    val showDialogConfirm: Boolean by tasksViewModel.showDialogConfirm.observeAsState(false)
+    val showDialogConfirm: Boolean by tasksViewModel.showDialogConfirm.observeAsState(initial = false)
+    val taskDelete: TaskModel by tasksViewModel.task.observeAsState(initial = TaskModel(task = ""))
 
-    deleteTaskDialog(
+    DeleteTaskDialog(
         show = showDialogConfirm,
-        task = task,
+        task = taskDelete,
         onDismiss = { tasksViewModel.onDialogConfirmClose() },
         onTaskDelete = { tasksViewModel.onItemRemove(it) }
     )
@@ -109,7 +111,7 @@ fun ItemTask(task: TaskModel, tasksViewModel: TasksViewModel) {
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .pointerInput(Unit) {
                 detectTapGestures(onLongPress = {
-                    tasksViewModel.onShowDialogConfirmClick()
+                    tasksViewModel.onShowDialogConfirmClick(task)
                 })
             },
         elevation = CardDefaults.cardElevation(8.dp)
@@ -185,26 +187,39 @@ fun FabOpenDialog(modifier: Modifier, tasksViewModel: TasksViewModel) {
 }
 
 @Composable
-fun deleteTaskDialog(
+fun DeleteTaskDialog(
     show: Boolean,
     task: TaskModel,
     onDismiss: () -> Unit,
     onTaskDelete: (TaskModel) -> Unit
 ) {
     if (show) {
-        Dialog(onDismissRequest = {  }) {
+        Dialog(onDismissRequest = { }) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color.White)
                     .padding(16.dp)
             ) {
-                Text(
-                    text = "¿Está seguro de eliminar la tarea ${task.task}?",
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.CenterHorizontally)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = "",
+                        Modifier
+                            .align(Alignment.CenterVertically)
+                            .padding(end = 16.dp)
+                    )
+                    Text(
+                        text = "¿Está seguro de eliminar la tarea?",
+                        modifier = Modifier.weight(1f),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                }
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Button(

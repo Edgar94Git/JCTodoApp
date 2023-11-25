@@ -46,6 +46,9 @@ class TasksViewModel @Inject constructor(
     private var _showDialogConfirm: MutableLiveData<Boolean> = MutableLiveData<Boolean>()
     val showDialogConfirm: LiveData<Boolean> = _showDialogConfirm
 
+    private var _task: MutableLiveData<TaskModel> = MutableLiveData<TaskModel>()
+    val task: LiveData<TaskModel> = _task
+
     //private var _tastks = mutableStateListOf<TaskModel>()
     //val tasks: List<TaskModel> = _tastks
 
@@ -81,6 +84,7 @@ class TasksViewModel @Inject constructor(
 //        onDialogConfirmClose()
         viewModelScope.launch {
             deleteTaskUseCase(task)
+            onDialogConfirmClose()
         }
     }
 
@@ -88,7 +92,8 @@ class TasksViewModel @Inject constructor(
         _showDialogConfirm.value = false
     }
 
-    fun onShowDialogConfirmClick(){
+    fun onShowDialogConfirmClick(task: TaskModel){
+        _task.value = task
         _showDialogConfirm.value = true
     }
 }
