@@ -19,6 +19,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -69,7 +70,11 @@ fun TasksScreen(tasksViewModel: TasksViewModel) {
 
     when (uiState) {
         is TaskUiState.Error -> {}
-        TaskUiState.Loading -> {}
+        TaskUiState.Loading -> {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            }
+        }
         is TaskUiState.Success -> {
             Box(modifier = Modifier.fillMaxWidth()) {
                 TaskList((uiState as TaskUiState.Success).tasks, tasksViewModel)
@@ -228,7 +233,7 @@ fun DeleteTaskDialog(
                         onClick = { onDismiss() },
                         modifier = Modifier
                             .weight(1f)
-                            .padding(start = 8.dp),
+                            .padding(end = 16.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color.Gray,
                             contentColor = Color.White
@@ -240,7 +245,6 @@ fun DeleteTaskDialog(
                         onClick = { onTaskDelete(task) },
                         modifier = Modifier
                             .weight(1f)
-                            .padding(end = 8.dp)
                     ) {
                         Text(text = "Aceptar", fontSize = 18.sp)
                     }
